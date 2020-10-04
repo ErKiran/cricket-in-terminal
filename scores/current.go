@@ -3,6 +3,7 @@ package scores
 import (
 	"cricket/utils"
 	"fmt"
+	"strings"
 )
 
 func Current(url string) []utils.CurrentTopic {
@@ -14,7 +15,11 @@ func Commentary(url, id string) {
 	var comments []string
 
 	for _, comment := range comm.CommentaryList {
-		comments = append(comments, fmt.Sprintf("🏏🏏 %v\n", comment.CommText))
+		if len(comment.CommentaryFormats.Bold.FormatValue) != 0 {
+			comments = append(comments, fmt.Sprintf("🏏🏏 %v\n", strings.Replace(comment.CommText, comment.CommentaryFormats.Bold.FormatID[0], comment.CommentaryFormats.Bold.FormatValue[0], -1)))
+		} else {
+			comments = append(comments, fmt.Sprintf("🏏🏏 %v\n", comment.CommText))
+		}
 	}
 
 	for _, comment := range comments {
