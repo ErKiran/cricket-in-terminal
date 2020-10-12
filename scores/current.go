@@ -38,15 +38,15 @@ func QuickMatchScoreCard(url, id string) {
 			ballTeam = teamName
 		}
 		if inning.InningsID == 1 {
-			fmt.Printf("First Innings %v %d/%d(%.1f)\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+			fmt.Printf("First Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
 		}
 
 		if inning.InningsID == 2 {
-			fmt.Printf("Second Innings %v %d/%d(%.1f)\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+			fmt.Printf("Second Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
 		}
 	}
 
-	fmt.Printf("Current Batting %v\n", batTeam)
+	fmt.Printf("Current Batting %v\n\n", batTeam)
 
 	var strikeBatsman = comm.Miniscore.BatsmanStriker
 	var nonStrikeBatsman = comm.Miniscore.BatsmanNonStriker
@@ -57,36 +57,28 @@ func QuickMatchScoreCard(url, id string) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetCaption(true, "BATING SCORECARD.")
 	table.SetHeader([]string{"NAME", "RUNS", "BALLS", "FOURS", "SIXS", "DOTS", "S/R"})
 	for _, v := range batsmanData {
 		table.Append(v)
 	}
 	table.Render()
+	fmt.Printf("\n\n\n")
 
-	fmt.Printf("Current Bowling %v\n", ballTeam)
+	fmt.Printf("Current Bowling %v\n\n", ballTeam)
 
 	var strikeBowler = comm.Miniscore.BowlerStriker
 	var nonStrikeBowler = comm.Miniscore.BowlerNonStriker
 
-	fmt.Printf("%v* %v-%v(%.1f)\n", strikeBowler.BowlName, strikeBowler.BowlWkts, strikeBowler.BowlRuns, strikeBowler.BowlOvs)
-	fmt.Printf("%v %v-%v(%.1f)\n", nonStrikeBowler.BowlName, nonStrikeBowler.BowlWkts, nonStrikeBowler.BowlRuns, nonStrikeBowler.BowlOvs)
-
-	// data := [][]string{
-	// 	{"A", "The Good", "500"},
-	// 	{"B", "The Very very Bad Man", "288"},
-	// 	{"C", "The Ugly", "120"},
-	// 	{"D", "The Gopher", "800"},
-	// }
-
-	// table := tablewriter.NewWriter(os.Stdout)
-	// table.SetHeader([]string{"Name", "Sign", "Rating"})
-	// table.SetCaption(true, "Movie ratings.")
-
-	// for _, v := range data {
-	// 	table.Append(v)
-	// }
-	// table.Render()
+	bowlingTable := tablewriter.NewWriter(os.Stdout)
+	bowlingData := [][]string{
+		{fmt.Sprintf("%v*", strikeBowler.BowlName), fmt.Sprintf("%d", strikeBowler.BowlWkts), fmt.Sprintf("%.2f", strikeBowler.BowlOvs), fmt.Sprintf("%d", strikeBowler.BowlWides), fmt.Sprintf("%d", strikeBowler.BowlNoballs), fmt.Sprintf("%d", strikeBowler.BowlMaidens), fmt.Sprintf("%.2f", strikeBowler.BowlEcon)},
+		{nonStrikeBowler.BowlName, fmt.Sprintf("%d", nonStrikeBowler.BowlWkts), fmt.Sprintf("%.2f", nonStrikeBowler.BowlOvs), fmt.Sprintf("%d", nonStrikeBowler.BowlWides), fmt.Sprintf("%d", nonStrikeBowler.BowlNoballs), fmt.Sprintf("%d", nonStrikeBowler.BowlMaidens), fmt.Sprintf("%.2f", nonStrikeBowler.BowlEcon)},
+	}
+	bowlingTable.SetHeader([]string{"NAME", "WICKETS", "OVERS", "WIDES", "NOBALLS", "MAIDENS", "ECONOMY"})
+	for _, v := range bowlingData {
+		bowlingTable.Append(v)
+	}
+	bowlingTable.Render()
 }
 
 func Commentary(url, id string) {
