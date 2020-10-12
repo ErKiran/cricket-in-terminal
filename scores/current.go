@@ -13,9 +13,17 @@ func Current(url string) []utils.CurrentTopic {
 func QuickMatchScoreCard(url, id string) {
 	comm := utils.GetMatchDataByID(url, id)
 
+	fmt.Printf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
+	fmt.Printf("Recent %v\n", comm.Miniscore.RecentOvsStats)
+	fmt.Printf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
+	fmt.Printf("Current Run Rate %.2f\n", comm.Miniscore.CurrentRunRate)
 	for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
 		if inning.InningsID == 1 {
-			fmt.Printf("First Innings %v %d-%d(%.1f)", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
+			fmt.Printf("First Innings %v %d/%d(%.1f)\n", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
+		}
+
+		if inning.InningsID == 2 {
+			fmt.Printf("Second Innings %v %d/%d(%.1f)\n", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
 		}
 	}
 

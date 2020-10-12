@@ -214,6 +214,7 @@ type CommentryResponse struct {
 			IsMatchNotCovered bool   `json:"isMatchNotCovered"`
 			MatchFormat       string `json:"matchFormat"`
 			State             string `json:"state"`
+			Status            string `json:"status"`
 			CustomStatus      string `json:"customStatus"`
 			HighlightedTeamID int    `json:"highlightedTeamId"`
 		} `json:"matchScoreDetails"`
