@@ -44,7 +44,7 @@ func MainCommand() {
 			streamingOptions := ""
 			options := &survey.Select{
 				Message: "What do you want to stream on the CLI?",
-				Options: []string{utils.FULL_MATCH_COMMENTRY, utils.QUICK_SCORECARD},
+				Options: []string{utils.LIVE_MATCH_COMMENTRY, utils.LIVE_SCORECARD},
 			}
 			survey.AskOne(options, &streamingOptions)
 
@@ -56,11 +56,11 @@ func MainCommand() {
 				}
 			}
 
-			if streamingOptions == utils.FULL_MATCH_COMMENTRY {
+			if streamingOptions == utils.LIVE_MATCH_COMMENTRY {
 				scores.Commentary(url, id)
 			}
 
-			if streamingOptions == utils.QUICK_SCORECARD {
+			if streamingOptions == utils.LIVE_SCORECARD {
 				scores.QuickMatchScoreCard(url, id)
 			}
 		},
