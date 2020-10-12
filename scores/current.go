@@ -10,20 +10,22 @@ func Current(url string) []utils.CurrentTopic {
 	return utils.GetCurrentTopics(url)
 }
 
-func Commentary(url, id string) {
-	// for range time.Tick(time.Second * 1) {
-	comm := utils.GetCommentaryUpdates(url, id)
-	var comments []string
+func QuickMatchScoreCard(url, id string) {
+	comm := utils.GetMatchDataByID(url, id)
 
 	for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
 		if inning.InningsID == 1 {
 			fmt.Printf("First Innings %v %d-%d(%.1f)", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
 		}
-		// js, _ := json.MarshalIndent(inning, "", " ")
-		// fmt.Println(string(js), "MiniScore")
 	}
 
 	fmt.Println(comm.Miniscore.MatchScoreDetails.CustomStatus)
+}
+
+func Commentary(url, id string) {
+	// for range time.Tick(time.Second * 1) {
+	comm := utils.GetMatchDataByID(url, id)
+	var comments []string
 
 	for _, comment := range comm.CommentaryList {
 		event := comment.Event

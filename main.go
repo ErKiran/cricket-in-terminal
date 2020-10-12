@@ -2,6 +2,7 @@ package main
 
 import (
 	"cricket/scores"
+	"cricket/utils"
 	"log"
 	"os"
 
@@ -39,14 +40,29 @@ func MainCommand() {
 			}
 
 			survey.AskOne(prompt, &selectedMatch)
+
+			streamingOptions := ""
+			options := &survey.Select{
+				Message: "What do you want to stream on the CLI?",
+				Options: []string{utils.FULL_MATCH_COMMENTRY, utils.QUICK_SCORECARD},
+			}
+			survey.AskOne(options, &streamingOptions)
+
 			var id string
+
 			for _, topic := range topics {
 				if topic.Title == selectedMatch {
 					id = topic.ID
 				}
 			}
 
-			scores.Commentary(url, id)
+			if streamingOptions == utils.FULL_MATCH_COMMENTRY {
+				scores.Commentary(url, id)
+			}
+
+			if streamingOptions == utils.QUICK_SCORECARD {
+				scores.QuickMatchScoreCard(url, id)
+			}
 		},
 	}
 
