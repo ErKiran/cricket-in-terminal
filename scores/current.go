@@ -13,17 +13,30 @@ func Current(url string) []utils.CurrentTopic {
 func QuickMatchScoreCard(url, id string) {
 	comm := utils.GetMatchDataByID(url, id)
 
+	if comm.Miniscore.MatchScoreDetails.State == utils.PREVIEW {
+		fmt.Println("Brace Yourself Match hasn't been yet started")
+		return
+	}
+
+	batTeam := comm.CommentaryList[0].BatTeamName
+
 	fmt.Printf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
-	fmt.Printf("Recent %v\n", comm.Miniscore.RecentOvsStats)
+	fmt.Printf("%v %v\n", batTeam, comm.Miniscore.RecentOvsStats)
 	fmt.Printf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
-	fmt.Printf("Current Run Rate %.2f\n", comm.Miniscore.CurrentRunRate)
+	fmt.Printf("%v's Current Run Rate %.2f\n", batTeam, comm.Miniscore.CurrentRunRate)
 	for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
+		var teamName string
+		if inning.BatTeamName == batTeam {
+			teamName = fmt.Sprintf("%v*", inning.BatTeamName)
+		} else {
+			teamName = inning.BatTeamName
+		}
 		if inning.InningsID == 1 {
-			fmt.Printf("First Innings %v %d/%d(%.1f)\n", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
+			fmt.Printf("First Innings %v %d/%d(%.1f)\n", teamName, inning.Score, inning.Wickets, inning.Overs)
 		}
 
 		if inning.InningsID == 2 {
-			fmt.Printf("Second Innings %v %d/%d(%.1f)\n", inning.BatTeamName, inning.Score, inning.Wickets, inning.Overs)
+			fmt.Printf("Second Innings %v %d/%d(%.1f)\n", teamName, inning.Score, inning.Wickets, inning.Overs)
 		}
 	}
 
