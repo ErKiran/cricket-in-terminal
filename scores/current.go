@@ -41,32 +41,34 @@ func QuickMatchScoreCard(url, id string) {
 		}
 
 		batTeam := comm.CommentaryList[0].BatTeamName
-		var ballTeam string
 
-		fmt.Printf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
-		fmt.Printf("%v %v\n", batTeam, comm.Miniscore.RecentOvsStats)
-		fmt.Printf("%v\n", comm.Miniscore.MatchScoreDetails.CustomStatus)
-		fmt.Printf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
-		fmt.Printf("%v's Current Run Rate %.2f\n", batTeam, comm.Miniscore.CurrentRunRate)
+		toss := fmt.Sprintf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
+		fmt.Println(fmt.Sprintf("%s", ansi.Color(toss, "green")))
+		recent := fmt.Sprintf("%v %v\n", batTeam, comm.Miniscore.RecentOvsStats)
+		fmt.Println(fmt.Sprintf("%s", ansi.Color(recent, "red")))
+		status := fmt.Sprintf("%v\n", comm.Miniscore.MatchScoreDetails.CustomStatus)
+		fmt.Println(fmt.Sprintf("%s", ansi.Color(status, "cyan")))
+		requiredRunRate := fmt.Sprintf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
+		fmt.Println(fmt.Sprintf("%s", ansi.Color(requiredRunRate, "red")))
+		currentRunRate := fmt.Sprintf("%v's Current Run Rate %.2f\n", batTeam, comm.Miniscore.CurrentRunRate)
+		fmt.Println(fmt.Sprintf("%s", ansi.Color(currentRunRate, "yellow")))
 		for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
 			var teamName string
 			if inning.BatTeamName == batTeam {
 				teamName = fmt.Sprintf("%v*", inning.BatTeamName)
 			} else {
 				teamName = inning.BatTeamName
-				ballTeam = teamName
 			}
 			if inning.InningsID == 1 {
-				fmt.Printf("First Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+				firstInnings := fmt.Sprintf("First Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+				fmt.Println(fmt.Sprintf("%s", ansi.Color(firstInnings, "yellow")))
 			}
 
 			if inning.InningsID == 2 {
-				fmt.Printf("Second Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+				secondInnings := fmt.Sprintf("Second Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+				fmt.Println(fmt.Sprintf("%s", ansi.Color(secondInnings, "magenta")))
 			}
 		}
-
-		fmt.Printf("Current Batting %v\n\n", batTeam)
-
 		var strikeBatsman = comm.Miniscore.BatsmanStriker
 		var nonStrikeBatsman = comm.Miniscore.BatsmanNonStriker
 
@@ -82,8 +84,6 @@ func QuickMatchScoreCard(url, id string) {
 		}
 		table.Render()
 		fmt.Printf("\n\n\n")
-
-		fmt.Printf("Current Bowling %v\n\n", ballTeam)
 
 		var strikeBowler = comm.Miniscore.BowlerStriker
 		var nonStrikeBowler = comm.Miniscore.BowlerNonStriker
