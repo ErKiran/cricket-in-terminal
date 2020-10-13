@@ -4,8 +4,12 @@ import (
 	"cricket/utils"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
+	"time"
 
+	"github.com/mgutz/ansi"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -14,71 +18,87 @@ func Current(url string) []utils.CurrentTopic {
 }
 
 func QuickMatchScoreCard(url, id string) {
-	comm := utils.GetMatchDataByID(url, id)
+	for range time.Tick(time.Second * 20) {
+		clear := make(map[string]func())
 
-	if comm.Miniscore.MatchScoreDetails.State == utils.PREVIEW {
-		fmt.Println("Brace Yourself Match hasn't been yet started")
-		return
-	}
+		clear["linux"] = func() {
+			cmd := exec.Command("clear")
+			cmd.Stdout = os.Stdout
+			cmd.Run()
+		}
+		value, ok := clear[runtime.GOOS]
 
-	batTeam := comm.CommentaryList[0].BatTeamName
-	var ballTeam string
-
-	fmt.Printf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
-	fmt.Printf("%v %v\n", batTeam, comm.Miniscore.RecentOvsStats)
-	fmt.Printf("%v\n", comm.Miniscore.MatchScoreDetails.CustomStatus)
-	fmt.Printf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
-	fmt.Printf("%v's Current Run Rate %.2f\n", batTeam, comm.Miniscore.CurrentRunRate)
-	for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
-		var teamName string
-		if inning.BatTeamName == batTeam {
-			teamName = fmt.Sprintf("%v*", inning.BatTeamName)
+		if ok {
+			value()
 		} else {
-			teamName = inning.BatTeamName
-			ballTeam = teamName
-		}
-		if inning.InningsID == 1 {
-			fmt.Printf("First Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+			panic("Your platform is unsupported!!")
 		}
 
-		if inning.InningsID == 2 {
-			fmt.Printf("Second Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+		comm := utils.GetMatchDataByID(url, id)
+		if comm.Miniscore.MatchScoreDetails.State == utils.PREVIEW {
+			fmt.Println(fmt.Sprintf("%s", ansi.Color("Brace Yourself Match hasn't been yet started", "red")))
+			return
 		}
+
+		batTeam := comm.CommentaryList[0].BatTeamName
+		var ballTeam string
+
+		fmt.Printf("Toss:  %v won the toss and choose to %v first\n", comm.Miniscore.MatchScoreDetails.TossResults.TossWinnerName, comm.Miniscore.MatchScoreDetails.TossResults.Decision)
+		fmt.Printf("%v %v\n", batTeam, comm.Miniscore.RecentOvsStats)
+		fmt.Printf("%v\n", comm.Miniscore.MatchScoreDetails.CustomStatus)
+		fmt.Printf("Required Run Rate %.2f\n", comm.Miniscore.RequiredRunRate)
+		fmt.Printf("%v's Current Run Rate %.2f\n", batTeam, comm.Miniscore.CurrentRunRate)
+		for _, inning := range comm.Miniscore.MatchScoreDetails.InningsScoreList {
+			var teamName string
+			if inning.BatTeamName == batTeam {
+				teamName = fmt.Sprintf("%v*", inning.BatTeamName)
+			} else {
+				teamName = inning.BatTeamName
+				ballTeam = teamName
+			}
+			if inning.InningsID == 1 {
+				fmt.Printf("First Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+			}
+
+			if inning.InningsID == 2 {
+				fmt.Printf("Second Innings %v %d/%d(%.1f)\n\n", teamName, inning.Score, inning.Wickets, inning.Overs)
+			}
+		}
+
+		fmt.Printf("Current Batting %v\n\n", batTeam)
+
+		var strikeBatsman = comm.Miniscore.BatsmanStriker
+		var nonStrikeBatsman = comm.Miniscore.BatsmanNonStriker
+
+		batsmanData := [][]string{
+			{fmt.Sprintf("%v*", strikeBatsman.BatName), fmt.Sprintf("%d", strikeBatsman.BatRuns), fmt.Sprintf("%d", strikeBatsman.BatBalls), fmt.Sprintf("%d", strikeBatsman.BatFours), fmt.Sprintf("%d", strikeBatsman.BatSixes), fmt.Sprintf("%d", strikeBatsman.BatDots), fmt.Sprintf("%.2f", strikeBatsman.BatStrikeRate)},
+			{nonStrikeBatsman.BatName, fmt.Sprintf("%d", nonStrikeBatsman.BatRuns), fmt.Sprintf("%d", nonStrikeBatsman.BatBalls), fmt.Sprintf("%d", nonStrikeBatsman.BatFours), fmt.Sprintf("%d", nonStrikeBatsman.BatSixes), fmt.Sprintf("%d", nonStrikeBatsman.BatDots), fmt.Sprintf("%.2f", nonStrikeBatsman.BatStrikeRate)},
+		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"NAME", "RUNS", "BALLS", "FOURS", "SIXS", "DOTS", "S/R"})
+		for _, v := range batsmanData {
+			table.Append(v)
+		}
+		table.Render()
+		fmt.Printf("\n\n\n")
+
+		fmt.Printf("Current Bowling %v\n\n", ballTeam)
+
+		var strikeBowler = comm.Miniscore.BowlerStriker
+		var nonStrikeBowler = comm.Miniscore.BowlerNonStriker
+
+		bowlingTable := tablewriter.NewWriter(os.Stdout)
+		bowlingData := [][]string{
+			{fmt.Sprintf("%v*", strikeBowler.BowlName), fmt.Sprintf("%d", strikeBowler.BowlWkts), fmt.Sprintf("%.1f", strikeBowler.BowlOvs), fmt.Sprintf("%d", strikeBowler.BowlWides), fmt.Sprintf("%d", strikeBowler.BowlNoballs), fmt.Sprintf("%d", strikeBowler.BowlMaidens), fmt.Sprintf("%.2f", strikeBowler.BowlEcon)},
+			{nonStrikeBowler.BowlName, fmt.Sprintf("%d", nonStrikeBowler.BowlWkts), fmt.Sprintf("%.1f", nonStrikeBowler.BowlOvs), fmt.Sprintf("%d", nonStrikeBowler.BowlWides), fmt.Sprintf("%d", nonStrikeBowler.BowlNoballs), fmt.Sprintf("%d", nonStrikeBowler.BowlMaidens), fmt.Sprintf("%.2f", nonStrikeBowler.BowlEcon)},
+		}
+		bowlingTable.SetHeader([]string{"NAME", "WICKETS", "OVERS", "WIDES", "NOBALLS", "MAIDENS", "ECONOMY"})
+		for _, v := range bowlingData {
+			bowlingTable.Append(v)
+		}
+		bowlingTable.Render()
 	}
-
-	fmt.Printf("Current Batting %v\n\n", batTeam)
-
-	var strikeBatsman = comm.Miniscore.BatsmanStriker
-	var nonStrikeBatsman = comm.Miniscore.BatsmanNonStriker
-
-	batsmanData := [][]string{
-		{fmt.Sprintf("%v*", strikeBatsman.BatName), fmt.Sprintf("%d", strikeBatsman.BatRuns), fmt.Sprintf("%d", strikeBatsman.BatBalls), fmt.Sprintf("%d", strikeBatsman.BatFours), fmt.Sprintf("%d", strikeBatsman.BatSixes), fmt.Sprintf("%d", strikeBatsman.BatDots), fmt.Sprintf("%.2f", strikeBatsman.BatStrikeRate)},
-		{nonStrikeBatsman.BatName, fmt.Sprintf("%d", nonStrikeBatsman.BatRuns), fmt.Sprintf("%d", nonStrikeBatsman.BatBalls), fmt.Sprintf("%d", nonStrikeBatsman.BatFours), fmt.Sprintf("%d", nonStrikeBatsman.BatSixes), fmt.Sprintf("%d", nonStrikeBatsman.BatDots), fmt.Sprintf("%.2f", nonStrikeBatsman.BatStrikeRate)},
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"NAME", "RUNS", "BALLS", "FOURS", "SIXS", "DOTS", "S/R"})
-	for _, v := range batsmanData {
-		table.Append(v)
-	}
-	table.Render()
-	fmt.Printf("\n\n\n")
-
-	fmt.Printf("Current Bowling %v\n\n", ballTeam)
-
-	var strikeBowler = comm.Miniscore.BowlerStriker
-	var nonStrikeBowler = comm.Miniscore.BowlerNonStriker
-
-	bowlingTable := tablewriter.NewWriter(os.Stdout)
-	bowlingData := [][]string{
-		{fmt.Sprintf("%v*", strikeBowler.BowlName), fmt.Sprintf("%d", strikeBowler.BowlWkts), fmt.Sprintf("%.2f", strikeBowler.BowlOvs), fmt.Sprintf("%d", strikeBowler.BowlWides), fmt.Sprintf("%d", strikeBowler.BowlNoballs), fmt.Sprintf("%d", strikeBowler.BowlMaidens), fmt.Sprintf("%.2f", strikeBowler.BowlEcon)},
-		{nonStrikeBowler.BowlName, fmt.Sprintf("%d", nonStrikeBowler.BowlWkts), fmt.Sprintf("%.2f", nonStrikeBowler.BowlOvs), fmt.Sprintf("%d", nonStrikeBowler.BowlWides), fmt.Sprintf("%d", nonStrikeBowler.BowlNoballs), fmt.Sprintf("%d", nonStrikeBowler.BowlMaidens), fmt.Sprintf("%.2f", nonStrikeBowler.BowlEcon)},
-	}
-	bowlingTable.SetHeader([]string{"NAME", "WICKETS", "OVERS", "WIDES", "NOBALLS", "MAIDENS", "ECONOMY"})
-	for _, v := range bowlingData {
-		bowlingTable.Append(v)
-	}
-	bowlingTable.Render()
 }
 
 func Commentary(url, id string) {
